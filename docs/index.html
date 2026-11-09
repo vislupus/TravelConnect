@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TravelConnect</title>
+<meta name="description" content="Дати, цени, свободни места и възможности за комбинация в стая за пътуванията, които следиш.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%230f766e'/><path d='M9 19c2-5 5-7 7-7s5 2 7 7' stroke='white' stroke-width='2.5' fill='none' stroke-linecap='round'/><circle cx='16' cy='9.5' r='2.3' fill='white'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4f6f5;
+    --surface: #ffffff;
+    --surface-2: #eef2f0;
+    --ink: #17221f;
+    --muted: #68776f;
+    --line: #dde4e0;
+    --accent: #0f766e;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(15, 118, 110, .12);
+    --good: #15803d;
+    --good-soft: #e5f5ea;
+    --warn: #b45309;
+    --warn-soft: #fdf0dc;
+    --bad: #b91c1c;
+    --bad-soft: #fde8e8;
+    --shadow: 0 1px 2px rgba(20, 30, 25, .06), 0 8px 24px -16px rgba(20, 30, 25, .25);
+    --radius: 14px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #101614;
+      --surface: #182019;
+      --surface-2: #1f2a24;
+      --ink: #e6ece8;
+      --muted: #93a39a;
+      --line: #2a3630;
+      --accent: #2dd4bf;
+      --accent-ink: #062a26;
+      --accent-soft: rgba(45, 212, 191, .16);
+      --good: #4ade80;
+      --good-soft: rgba(74, 222, 128, .14);
+      --warn: #fbbf24;
+      --warn-soft: rgba(251, 191, 36, .14);
+      --bad: #f87171;
+      --bad-soft: rgba(248, 113, 113, .14);
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #101614; --surface: #182019; --surface-2: #1f2a24; --ink: #e6ece8; --muted: #93a39a;
+    --line: #2a3630; --accent: #2dd4bf; --accent-ink: #062a26; --accent-soft: rgba(45, 212, 191, .16);
+    --good: #4ade80; --good-soft: rgba(74, 222, 128, .14); --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .14);
+    --bad: #f87171; --bad-soft: rgba(248, 113, 113, .14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .6); color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 15px/1.5 "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  h1, h2, h3 { margin: 0; line-height: 1.25; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  /* ---------- шапка ---------- */
+  .top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 18px 0 14px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -.01em; }
+  .brand svg { width: 26px; height: 26px; }
+  .updated { color: var(--muted); font-size: 14px; }
+  .spacer { flex: 1; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); font-size: 13.5px; color: var(--muted);
+  }
+  .pill b { color: var(--ink); font-weight: 600; }
+  .ghost-btn {
+    border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 999px;
+    cursor: pointer; font-size: 13.5px; color: var(--muted);
+  }
+  .ghost-btn:hover { border-color: var(--muted); color: var(--ink); }
+
+  /* ---------- „Сега“ ---------- */
+  .now { margin-top: 10px; }
+  .hero {
+    border-radius: var(--radius); padding: 22px 24px; background: var(--surface); border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .hero.hit { border-color: color-mix(in srgb, var(--good) 45%, var(--line)); background: linear-gradient(135deg, var(--good-soft), var(--surface) 60%); }
+  .hero.calm { background: var(--surface); }
+  .hero h1 { font-size: clamp(20px, 2.4vw, 26px); font-weight: 800; letter-spacing: -.015em; }
+  .hero p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+  .hero .count { display: inline-block; min-width: 1.6em; text-align: center; padding: 0 .35em; border-radius: 8px; background: var(--good); color: #fff; font-weight: 800; margin-right: .2em; }
+
+  .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 18px; }
+  .match {
+    position: relative; border-radius: 12px; padding: 16px 16px 14px; background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--good) 40%, var(--line)); box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .match.other { border-color: var(--line); }
+  .match .who { font-size: 13px; font-weight: 700; color: var(--good); text-transform: uppercase; letter-spacing: .04em; }
+  .match.other .who { color: var(--muted); }
+  .match .travel { font-weight: 700; font-size: 16px; }
+  .match .variant { color: var(--muted); font-size: 14px; }
+  .match .facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; margin-top: 4px; }
+  .match .facts b { font-weight: 600; }
+  .match .cta { margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-weight: 700;
+    background: var(--accent); color: var(--accent-ink); border: 0; cursor: pointer; font-size: 14px;
+  }
+  .btn:hover { filter: brightness(1.05); text-decoration: none; }
+  .since { color: var(--muted); font-size: 13px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 13.5px; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
+  .chip.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+  .chip.good { background: var(--good-soft); border-color: transparent; color: var(--good); }
+  .chip.accent { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .chip a { color: inherit; }
+
+  /* ---------- пътувания ---------- */
+  .section-h { display: flex; align-items: baseline; gap: 12px; margin: 34px 0 12px; flex-wrap: wrap; }
+  .section-h h2 { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+  .section-h .sub { color: var(--muted); font-size: 14px; }
+  .section-h .controls { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--muted); cursor: pointer; }
+
+  .travel-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .travel-head { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; padding: 14px 16px; align-items: center; }
+  .travel-head img { width: 96px; height: 72px; object-fit: cover; border-radius: 10px; background: var(--surface-2); }
+  .travel-head .ph { width: 96px; height: 72px; border-radius: 10px; background: var(--surface-2); }
+  .travel-head h3 { font-size: 17px; font-weight: 700; }
+  .travel-head h3 a { color: inherit; }
+  .travel-head .meta { color: var(--muted); font-size: 13.5px; margin-top: 3px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .travel-head .meta .ok { color: var(--good); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12.5px; padding: 8px 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap; }
+  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr.dep { cursor: pointer; }
+  tbody tr.dep:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+  tbody tr.dep.hit { background: color-mix(in srgb, var(--good-soft) 65%, var(--surface)); }
+  tbody tr.dep.hit td:first-child { box-shadow: inset 3px 0 0 var(--good); }
+  tbody tr.dep.past { color: var(--muted); }
+  tbody tr.dep.gone { color: var(--muted); text-decoration: line-through; opacity: .75; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .d1 { font-weight: 600; white-space: nowrap; }
+  .d2 { color: var(--muted); font-size: 12.5px; }
+  .variant { max-width: 32ch; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .tag.good { background: var(--good-soft); color: var(--good); }
+  .tag.warn { background: var(--warn-soft); color: var(--warn); }
+  .tag.bad { background: var(--bad-soft); color: var(--bad); }
+  .tag.muted { background: var(--surface-2); color: var(--muted); }
+  .tag.accent { background: var(--accent-soft); color: var(--accent); }
+  .trend { font-size: 12.5px; color: var(--muted); display: block; }
+  .trend.down { color: var(--good); }
+  .trend.up { color: var(--warn); }
+  .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+
+  tr.detail td { background: var(--surface-2); padding: 14px 16px 16px; }
+  .detail-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; }
+  .detail h4 { margin: 0 0 8px; font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .spark { width: 100%; height: 150px; display: block; }
+  .timeline { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
+  .timeline li { display: grid; grid-template-columns: 215px 1fr; gap: 10px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+  .timeline li:last-child { border-bottom: 0; }
+  .timeline .when { color: var(--muted); white-space: nowrap; }
+  .detail .note { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+  /* ---------- дневник ---------- */
+  .log { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .log-filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .log-filters button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer; color: var(--muted); }
+  .log-filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .log ul { list-style: none; margin: 0; padding: 4px 0; max-height: 520px; overflow: auto; }
+  .log li { display: grid; grid-template-columns: 128px 1fr; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .log li:last-child { border-bottom: 0; }
+  .log .when { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .log .k { font-weight: 600; }
+  .log .k.good { color: var(--good); }
+  .log .k.warn { color: var(--warn); }
+  .log .k.bad { color: var(--bad); }
+  .log .muted { color: var(--muted); }
+  .log .slack { font-size: 12px; color: var(--muted); margin-left: 6px; }
+
+  .foot { color: var(--muted); font-size: 13px; padding: 28px 0 40px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .issues { margin: 12px 0 0; padding: 10px 14px; font-size: 14px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); }
+  .issues ul { margin: 6px 0 0; padding-left: 20px; }
+
+  .empty { max-width: 560px; margin: 10vh auto; text-align: center; padding: 0 20px; }
+  .empty h1 { font-size: 22px; margin: 0 0 8px; }
+  .empty p { color: var(--muted); margin: 0 0 14px; }
+  .empty code { background: var(--surface-2); padding: 2px 6px; border-radius: 6px; font-size: 13px; }
+
+  @media (max-width: 760px) {
+    .travel-head { grid-template-columns: 72px 1fr; }
+    .travel-head img, .travel-head .ph { width: 72px; height: 56px; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .log li { grid-template-columns: 1fr; gap: 2px; }
+    .timeline li { grid-template-columns: 1fr; gap: 0; }
+    .hide-sm { display: none; }
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 640px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="var(--accent)"/><path d="M9 19c2-5 5-7 7-7s5 2 7 7" stroke="var(--accent-ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="16" cy="9.5" r="2.3" fill="var(--accent-ink)"/></svg>
+      TravelConnect
+    </div>
+    <span class="updated" id="updated"></span>
+    <span class="spacer"></span>
+    <span class="pill" id="wanted" hidden></span>
+    <button class="ghost-btn" id="theme" type="button" title="Светла/тъмна тема">◐</button>
+  </header>
+
+  <main id="app">
+    <div class="empty" id="loading"><p>Зареждам данните…</p></div>
+  </main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const DATA_URL = "data/summary.json";
+  const $app = document.getElementById("app");
+
+  // ---------- тема ----------
+  const root = document.documentElement;
+  try { const t = localStorage.getItem("tc-theme"); if (t) root.dataset.theme = t; } catch (_) {}
+  document.getElementById("theme").addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("tc-theme", root.dataset.theme); } catch (_) {}
+  });
+
+  // ---------- помощни ----------
+  const MONTHS = ["яну", "фев", "мар", "апр", "май", "юни", "юли", "авг", "сеп", "окт", "ное", "дек"];
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const pad = n => String(n).padStart(2, "0");
+  const dISO = iso => { const d = new Date(iso + "T00:00:00"); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`; };
+  const dShort = iso => { const d = new Date(iso + "T00:00:00"); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+  const range = (a, b) => {
+    const A = new Date(a + "T00:00:00"), B = new Date(b + "T00:00:00");
+    if (A.getFullYear() === B.getFullYear()) return `${pad(A.getDate())}.${pad(A.getMonth() + 1)} – ${pad(B.getDate())}.${pad(B.getMonth() + 1)}.${B.getFullYear()}`;
+    return `${dISO(a)} – ${dISO(b)}`;
+  };
+  const dt = iso => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const dOnly = iso => { if (!iso) return "—"; const d = new Date(iso); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`; };
+  const money = (v, cur) => {
+    if (v == null) return "—";
+    const s = Number.isInteger(v) ? v.toLocaleString("bg-BG") : v.toLocaleString("bg-BG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `${s} ${(cur || "EUR") === "EUR" ? "€" : cur}`;
+  };
+  const ago = iso => {
+    if (!iso) return "";
+    const days = Math.round((Date.now() - new Date(iso)) / 864e5);
+    if (days <= 0) return "днес";
+    if (days === 1) return "от вчера";
+    return `от ${days} дни`;
+  };
+  const relDays = n => {
+    if (n < 0) return "минало";
+    if (n === 0) return "днес";
+    if (n < 30) return `след ${n} дни`;
+    if (n < 60) return "след месец";
+    return `след ${Math.round(n / 30)} месеца`;
+  };
+  const whoLabel = c => ({ "мъж": "мъж за комбиниране", "жена": "жена за комбиниране", "any": "комбинация – полът не е посочен" }[c] || "комбинация");
+  const seatsLabel = d => {
+    if (d.seats_text) return d.seats_text.toLowerCase();
+    if (d.seats != null) return d.seats === 0 ? "няма места" : `${d.seats} свободни места`;
+    if (d.available === true) return "има места";
+    if (d.available === false) return "няма места";
+    return "—";
+  };
+  const seatsClass = (d, lastN) => {
+    if (d.available === false || d.seats === 0) return "bad";
+    if (d.seats != null && lastN && d.seats <= lastN) return "warn";
+    if (d.available === true) return "good";
+    return "muted";
+  };
+
+  // ---------- зареждане ----------
+  async function load() {
+    let res;
+    try { res = await fetch(`${DATA_URL}?v=${Date.now()}`, { cache: "no-store" }); } catch (e) { return showEmpty(); }
+    if (!res.ok) return showEmpty();
+    let data;
+    try { data = await res.json(); } catch (e) { return showEmpty(); }
+    render(data);
+  }
+
+  function showEmpty() {
+    $app.innerHTML = `<div class="empty">
+      <h1>Още няма данни</h1>
+      <p>Файлът <code>data/summary.json</code> се създава от първата проверка. Пусни я от таба <b>Actions → Проверка на пътуванията → Run workflow</b>,
+      или локално: <code>uv run python -m tracker</code>, после отвори страницата през локален сървър
+      (<code>python -m http.server</code> в папката <code>docs</code>, като копираш <code>data/summary.json</code> в <code>docs/data/</code>).</p>
+    </div>`;
+  }
+
+  // ---------- рендер ----------
+  let DATA, showPast = false;
+  const expanded = new Set();
+
+  function render(data) {
+    DATA = data;
+    const s = data.settings || {};
+    document.getElementById("updated").textContent = data.generated_at ? `обновено ${dt(data.generated_at)} · ${data.runs || 0} проверки` : "";
+    const $w = document.getElementById("wanted");
+    $w.hidden = false;
+    $w.innerHTML = `търся <b>${esc(s.combination === "any" ? "всеки" : s.combination)}</b> за стая`;
+
+    const deps = {};
+    for (const t of data.travels) for (const d of t.departures) { d._travel = t; deps[d.id] = d; }
+    const H = data.highlights || { combo_matches: [], other_combos: [], last_seats: [] };
+    const matches = H.combo_matches.map(id => deps[id]).filter(Boolean).sort((a, b) => a.start.localeCompare(b.start));
+    const others = H.other_combos.map(id => deps[id]).filter(Boolean).sort((a, b) => a.start.localeCompare(b.start));
+    const lastSeats = H.last_seats.map(id => deps[id]).filter(Boolean);
+    const weekAgo = Date.now() - 7 * 864e5;
+    const recent = (data.events || []).filter(e => new Date(e.at) > weekAgo && !(e.detail && e.detail.baseline));
+    const recentNew = recent.filter(e => e.kind === "new_departure").length;
+    const recentPrice = recent.filter(e => e.kind === "price_change").length;
+
+    const liveCount = Object.values(deps).filter(d => !d.gone_since && d.days_until >= 0).length;
+    const activeTravels = data.travels.filter(t => t.active).length;
+
+    let html = `<section class="now">`;
+    if (matches.length) {
+      html += `<div class="hero hit">
+        <h1><span class="count">${matches.length}</span> ${matches.length === 1 ? "дата с възможност за комбинация" : "дати с възможност за комбинация"}</h1>
+        <p>Има човек, с когото да споделиш стая. Обикновено е само едно място – запиши се бързо.</p>
+        <div class="match-grid">${matches.map(d => matchCard(d, false)).join("")}</div>
+      </div>`;
+    } else {
+      html += `<div class="hero calm">
+        <h1>Засега няма дата с ${esc(whoLabel(s.combination))}</h1>
+        <p>Следя ${activeTravels} ${activeTravels === 1 ? "пътуване" : "пътувания"} и ${liveCount} предстоящи дати. Щом на някоя се появи „възможност за комбинация${s.combination === "any" ? "" : " с " + esc(s.combination)}“, тя ще е тук, а в Slack ще дойде съобщение.</p>
+      </div>`;
+    }
+    if (others.length) {
+      html += `<div class="match-grid" style="margin-top:14px">${others.map(d => matchCard(d, true)).join("")}</div>`;
+    }
+    const chips = [];
+    if (lastSeats.length) chips.push(`<span class="chip warn">⏳ Последни места: ${lastSeats.map(d => `<a href="#${esc(d.id)}">${esc(shortName(d))} ${dShort(d.start)}</a>`).join(", ")}</span>`);
+    if (recentNew) chips.push(`<span class="chip accent">🆕 ${recentNew} ${recentNew === 1 ? "нова дата" : "нови дати"} тази седмица</span>`);
+    if (recentPrice) chips.push(`<span class="chip">💶 ${recentPrice} ${recentPrice === 1 ? "промяна в цена" : "промени в цените"} тази седмица</span>`);
+    if (!recentNew && !recentPrice && data.runs > 1) chips.push(`<span class="chip">Без нови дати и промени в цените през последната седмица</span>`);
+    if (chips.length) html += `<div class="chips">${chips.join("")}</div>`;
+    if (data.last_run && Array.isArray(data.last_run.errors) && data.last_run.errors.length) {
+      html += `<div class="issues">⚠️ При последната проверка ${data.last_run.errors.length} ${data.last_run.errors.length === 1 ? "пътуване не можа" : "пътувания не можаха"} да бъдат прочетени:
+        <ul>${data.last_run.errors.map(e => `<li><a href="${esc(e.url)}">${esc(e.name || e.slug)}</a> – ${esc(e.error)}</li>`).join("")}</ul></div>`;
+    }
+    html += `</section>`;
+
+    // пътувания
+    html += `<div class="section-h"><h2>Всички дати и цени</h2><span class="sub">натисни ред за историята на цената и местата</span>
+      <div class="controls"><label class="toggle"><input type="checkbox" id="showPast" ${showPast ? "checked" : ""}> минали и свалени дати</label></div></div>`;
+    for (const t of data.travels) html += travelCard(t, s);
+
+    // дневник
+    html += `<div class="section-h"><h2>Какво се промени</h2><span class="sub">всяка проверка записва разликите спрямо предишната</span></div>`;
+    html += eventLog(data.events || []);
+
+    const lr = data.last_run;
+    html += `<footer class="foot">
+      <span>Последна проверка: ${lr ? dt(lr.finished_at || lr.started_at) : "—"}${lr ? ` · ${lr.ok_count} ок / ${lr.fail_count} грешки` : ""}</span>
+      <span>Данните са в <code>data/travels.db</code> (SQLite) и се обновяват от GitHub Actions.</span>
+    </footer>`;
+
+    $app.innerHTML = html;
+    bind();
+    if (location.hash) { const el = document.getElementById(location.hash.slice(1)); if (el) { el.scrollIntoView({ block: "center" }); toggleDetail(el.id); } }
+  }
+
+  // Кратко име за чипове: твоето име от YAML или заглавието до двоеточието
+  const shortTitle = t => {
+    if (t.name) return t.name;
+    let s = (t.title || t.slug).split(/[:–—]/)[0].trim();
+    return s.length > 34 ? s.slice(0, 33).trimEnd() + "…" : s;
+  };
+  const shortName = d => shortTitle(d._travel);
+
+  function matchCard(d, other) {
+    const t = d._travel;
+    const cls = other ? "match other" : "match";
+    const who = other ? whoLabel(d.combo) : (d.combo === "any" ? "възможност за комбинация · полът не е посочен" : `има ${whoLabel(d.combo)}`);
+    return `<article class="${cls}">
+      <div class="who">${esc(who)}</div>
+      <div class="travel"><a href="${esc(t.url)}">${esc(t.name || t.title || t.slug)}</a></div>
+      <div class="variant">${esc(d.name)}</div>
+      <div class="facts">
+        <span><b>${range(d.start, d.end)}</b> · ${d.days} дни</span>
+        <span><b>${money(d.price, d.currency)}</b></span>
+        <span class="tag ${seatsClass(d, DATA.settings.notify_last_seats)}">${esc(seatsLabel(d))}</span>
+      </div>
+      <div class="cta">
+        <a class="btn" href="${esc(t.url.replace(/\/?$/, "/"))}#reservation-form">ЗАПИШИ СЕ →</a>
+        <span class="since">${d.combo_since ? `комбинацията е видима ${ago(d.combo_since)}` : ""}${d.combo_text ? ` · „${esc(d.combo_text)}“` : ""}</span>
+      </div>
+    </article>`;
+  }
+
+  function travelCard(t, s) {
+    const all = t.departures.slice().sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end));
+    const live = all.filter(d => !d.gone_since && d.days_until >= 0);
+    const shown = showPast ? all : live;
+    const hidden = all.length - live.length;
+    const minPrice = live.reduce((m, d) => d.price != null && (m == null || d.price < m) ? d.price : m, null);
+    const avail = live.filter(d => d.available !== false).length;
+    const combos = live.filter(d => d.combo && d.available !== false).length;
+    const meta = [
+      `${live.length} ${live.length === 1 ? "предстояща дата" : "предстоящи дати"}`,
+      live.length ? `${avail} с места` : null,
+      minPrice != null ? `от ${money(minPrice, "EUR")}` : null,
+      combos ? `<span class="ok">${combos} с комбинация</span>` : null,
+      !t.active ? `<span class="tag muted">спряно</span>` : null,
+    ].filter(Boolean).join(" · ");
+    return `<section class="travel-card" id="t-${esc(t.slug)}">
+      <div class="travel-head">
+        ${t.image ? `<img src="${esc(t.image)}" alt="" loading="lazy">` : `<div class="ph"></div>`}
+        <div><h3><a href="${esc(t.url)}">${esc(t.name || t.title || t.slug)}</a></h3><div class="meta">${meta}</div></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Дати</th><th>Вариант</th><th class="num">Цена</th><th>Места</th><th>Комбинация</th><th class="hide-sm">Следи се от</th></tr></thead>
+        <tbody>${shown.length ? shown.map(d => depRow(d, s)).join("") : `<tr><td colspan="6" class="muted" style="color:var(--muted)">Няма обявени дати${hidden ? ` (${hidden} минали/свалени – включи ги горе)` : ""}.</td></tr>`}</tbody>
+      </table></div>
+    </section>`;
+  }
+
+  function depRow(d, s) {
+    const past = d.days_until < 0, gone = !!d.gone_since;
+    const cls = ["dep", d.combo_match && d.available !== false && !past && !gone ? "hit" : "", past ? "past" : "", gone ? "gone" : ""].join(" ").trim();
+    let trend = "";
+    if (d.price != null && d.price_first != null && d.price !== d.price_first) {
+      const diff = d.price - d.price_first;
+      trend = `<span class="trend ${diff < 0 ? "down" : "up"}">${diff < 0 ? "▼" : "▲"} ${money(Math.abs(diff), d.currency)} от първата проверка</span>`;
+    } else if (d.price_changes) {
+      trend = `<span class="trend">${d.price_changes} ${d.price_changes === 1 ? "промяна" : "промени"} · ${money(d.price_min, d.currency)}–${money(d.price_max, d.currency)}</span>`;
+    } else if (d.checks > 1) {
+      trend = `<span class="trend">без промяна (${d.checks} проверки)</span>`;
+    }
+    const combo = d.combo
+      ? `<span class="tag ${d.combo_match ? "good" : "muted"}">${esc(d.combo === "any" ? "комбинация (без пол)" : "с " + d.combo)}</span>`
+      : `<span style="color:var(--muted)">—</span>`;
+    const badges = d.badges && d.badges.length ? `<div class="badges">${d.badges.map(b => `<span class="tag ${/ПОТВЪРД/i.test(b) ? "accent" : "muted"}">${esc(b.toLowerCase())}</span>`).join("")}</div>` : "";
+    return `<tr class="${cls}" id="${esc(d.id)}" data-id="${esc(d.id)}">
+      <td><span class="d1">${range(d.start, d.end)}</span><br><span class="d2">${d.days} дни · ${gone ? "свалена " + dOnly(d.gone_since) : relDays(d.days_until)}</span></td>
+      <td class="variant">${esc(d.name)}${badges}</td>
+      <td class="num"><b>${money(d.price, d.currency)}</b>${trend}</td>
+      <td><span class="tag ${seatsClass(d, s.notify_last_seats)}">${esc(seatsLabel(d))}</span></td>
+      <td>${combo}</td>
+      <td class="hide-sm" style="color:var(--muted);white-space:nowrap">${dOnly(d.first_seen)}</td>
+    </tr>`;
+  }
+
+  function detailRow(d) {
+    const segs = d.history || [];
+    const priced = segs.filter(x => x.price != null);
+    let spark = `<p class="note">Още няма история на цената.</p>`;
+    if (priced.length) {
+      const W = 600, Hh = 150, P = { l: 56, r: 12, t: 12, b: 24 };
+      const t0 = new Date(segs[0].from).getTime(), t1 = Math.max(new Date(segs[segs.length - 1].to).getTime(), t0 + 864e5);
+      const lo = Math.min(...priced.map(x => x.price)), hi = Math.max(...priced.map(x => x.price));
+      const span = Math.max(hi - lo, Math.max(hi * .02, 1));
+      const y = v => P.t + (Hh - P.t - P.b) * (1 - (v - (lo - span * .25)) / (span * 1.5));
+      const x = ts => P.l + (W - P.l - P.r) * ((new Date(ts).getTime() - t0) / (t1 - t0));
+      let path = "";
+      priced.forEach((s, i) => {
+        const a = x(s.from), b = Math.max(x(s.to), a + 2), yy = y(s.price);
+        path += `${i ? "L" : "M"}${a.toFixed(1)},${yy.toFixed(1)} L${b.toFixed(1)},${yy.toFixed(1)} `;
+      });
+      const ticks = [lo, hi].filter((v, i, arr) => arr.indexOf(v) === i);
+      spark = `<svg class="spark" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="История на цената">
+        ${ticks.map(v => `<line x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${P.l - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${money(v, d.currency)}</text>`).join("")}
+        <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+        <text x="${P.l}" y="${Hh - 6}" font-size="11" fill="var(--muted)">${dOnly(segs[0].from)}</text>
+        <text x="${W - P.r}" y="${Hh - 6}" font-size="11" fill="var(--muted)" text-anchor="end">${dOnly(segs[segs.length - 1].to)}</text>
+      </svg>`;
+    }
+    const tl = segs.slice().reverse().map(s => {
+      const bits = [money(s.price, d.currency), seatsLabel(s), s.combo ? (s.combo === "any" ? "комбинация (без пол)" : `комбинация с ${s.combo}`) : null, ...(s.badges || []).map(b => b.toLowerCase())].filter(Boolean);
+      const when = s.from === s.to ? dOnly(s.from) : `${dOnly(s.from)} – ${dOnly(s.to)}`;
+      return `<li><span class="when">${when}${s.n > 1 ? ` <span style="opacity:.7">(${s.n} проверки)</span>` : ""}</span><span>${esc(bits.join(" · "))}</span></li>`;
+    }).join("");
+    const stats = [
+      d.price_min != null && d.price_min !== d.price_max ? `Цена досега: ${money(d.price_min, d.currency)} – ${money(d.price_max, d.currency)}` : (d.price != null ? `Цената не се е променяла (${money(d.price, d.currency)})` : null),
+      `${d.checks} ${d.checks === 1 ? "проверка" : "проверки"} от ${dOnly(d.first_seen)}`,
+      d.heading ? `На сайта: „${d.heading}“` : null,
+    ].filter(Boolean);
+    return `<tr class="detail" data-for="${esc(d.id)}"><td colspan="6"><div class="detail">
+      <div class="detail-grid">
+        <div><h4>Цена във времето</h4>${spark}<p class="note">${stats.map(esc).join(" · ")}</p></div>
+        <div><h4>Какво е пишело на сайта</h4><ul class="timeline">${tl}</ul></div>
+      </div></div></td></tr>`;
+  }
+
+  const KIND_CLASS = { combo_appeared: "good", available_again: "good", new_departure: "", price_change: "", seats_change: "warn", sold_out: "bad", combo_gone: "bad", departure_gone: "bad", group_confirmed: "" };
+  const KINDS = [["all", "всички"], ["combo_appeared", "комбинации"], ["new_departure", "нови дати"], ["price_change", "цени"], ["seats_change", "места"], ["sold_out", "пълни"], ["available_again", "пак има места"], ["group_confirmed", "потвърдени"], ["departure_gone", "свалени"]];
+  let logFilter = "all";
+
+  function eventText(e) {
+    const d = e.detail || {}, where = e.dep_name ? `${esc(e.dep_name)}, ${range(e.start, e.end)}` : "";
+    const link = e.travel_url ? `<a href="#${esc(e.departure)}">${esc(e.travel_name)}</a>` : esc(e.travel_name);
+    switch (e.kind) {
+      case "new_departure": return `${link} · ${where} – ${money(d.price, d.currency)}, ${esc(seatsLabel(d))}${d.combo ? `, комбинация с ${esc(d.combo)}` : ""}${d.baseline ? ` <span class="muted">(първа проверка)</span>` : ""}`;
+      case "price_change": return `${link} · ${where} – ${money(d.old, d.currency)} → <b>${money(d.new, d.currency)}</b> (${d.diff < 0 ? "" : "+"}${money(d.diff, d.currency)}${d.pct != null ? `, ${d.pct > 0 ? "+" : ""}${d.pct} %` : ""})`;
+      case "combo_appeared": return `${link} · ${where} – <b>${esc(d.combo === "any" ? "възможност за комбинация (без пол)" : "възможност за комбинация с " + d.combo)}</b>${d.prev_combo ? ` (преди: с ${esc(d.prev_combo)})` : ""}`;
+      case "combo_gone": return `${link} · ${where} – комбинацията с ${esc(d.prev_combo || "…")} вече я няма`;
+      case "seats_change": return `${link} · ${where} – ${esc(d.old_text || (d.old == null ? "—" : d.old))} → <b>${esc(d.new_text || d.new)}</b>`;
+      case "sold_out": return `${link} · ${where} – няма места`;
+      case "available_again": return `${link} · ${where} – отново има места (${esc(seatsLabel(d))})`;
+      case "group_confirmed": return `${link} · ${where} – групата е потвърдена`;
+      case "departure_gone": return `${link} · ${where || esc(d.name || "")} – датата вече не е на страницата`;
+      default: return `${link} · ${where}`;
+    }
+  }
+
+  function eventLog(events) {
+    const list = events.filter(e => logFilter === "all" ? !(e.detail && e.detail.baseline && e.kind === "new_departure") : e.kind === logFilter);
+    return `<div class="log">
+      <div class="log-filters">${KINDS.map(([k, l]) => `<button type="button" data-k="${k}" aria-pressed="${k === logFilter}">${l}</button>`).join("")}</div>
+      <ul>${list.length ? list.slice(0, 200).map(e => `<li><span class="when">${dt(e.at)}</span><span><span class="k ${KIND_CLASS[e.kind] || ""}">${esc(e.label)}</span>${e.notified ? `<span class="slack" title="пратено в Slack">· Slack</span>` : ""}<br>${eventText(e)}</span></li>`).join("") : `<li><span class="when"></span><span class="muted">Още няма записани промени.</span></li>`}</ul>
+    </div>`;
+  }
+
+  function toggleDetail(id) {
+    const row = document.querySelector(`tr.dep[data-id="${CSS.escape(id)}"]`);
+    if (!row) return;
+    const open = row.nextElementSibling && row.nextElementSibling.classList.contains("detail");
+    if (open) { row.nextElementSibling.remove(); expanded.delete(id); return; }
+    const d = findDep(id);
+    if (!d) return;
+    row.insertAdjacentHTML("afterend", detailRow(d));
+    expanded.add(id);
+  }
+  function findDep(id) { for (const t of DATA.travels) for (const d of t.departures) if (d.id === id) return d; return null; }
+
+  function bind() {
+    document.querySelectorAll("tr.dep").forEach(r => r.addEventListener("click", ev => {
+      if (ev.target.closest("a")) return;
+      toggleDetail(r.dataset.id);
+    }));
+    const sp = document.getElementById("showPast");
+    if (sp) sp.addEventListener("change", () => { showPast = sp.checked; render(DATA); });
+    document.querySelectorAll(".log-filters button").forEach(b => b.addEventListener("click", () => {
+      logFilter = b.dataset.k; document.querySelector(".log").outerHTML = eventLog(DATA.events || []); bind();
+    }));
+    for (const id of expanded) { const r = document.querySelector(`tr.dep[data-id="${CSS.escape(id)}"]`); if (r && !(r.nextElementSibling && r.nextElementSibling.classList.contains("detail"))) r.insertAdjacentHTML("afterend", detailRow(findDep(id))); }
+    window.addEventListener("hashchange", () => { const id = location.hash.slice(1); const el = document.getElementById(id); if (el && el.classList.contains("dep")) { el.scrollIntoView({ block: "center" }); if (!expanded.has(id)) toggleDetail(id); } });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

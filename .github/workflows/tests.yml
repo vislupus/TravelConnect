@@ -1,0 +1,17 @@
+name: Тестове
+
+on:
+  push:
+    branches: [main]
+    paths: ["tracker/**", "tests/**", "pyproject.toml", "uv.lock"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --frozen
+      - run: uv run pytest -q
