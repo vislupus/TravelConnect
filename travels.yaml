@@ -1,0 +1,44 @@
+# ─────────────────────────────────────────────────────────────
+#  Пътувания за следене (cedadventures.com)
+# ─────────────────────────────────────────────────────────────
+#
+#  Всеки ред в travels е линк към страница на пътуване от вида
+#  https://cedadventures.com/travels/<име>/ – добавиш ли нов, проверката
+#  тръгва веднага (при push в main) и от следващия ден е в ежедневния цикъл.
+#
+#  Може и като обект:
+#    - url: https://cedadventures.com/travels/yaponia/
+#      name: Япония        # (по избор) твое кратко име; иначе заглавието от сайта
+#      active: false       # (по избор) спира проверката, историята се пази
+# ─────────────────────────────────────────────────────────────
+
+settings:
+  # Кого търсиш за споделена стая: мъж | жена | any.
+  # Силно известие в Slack идва, когато на някоя дата се появи
+  # „възможност за комбинация с <този пол>“ (или без посочен пол).
+  combination: мъж
+
+  # true = известие и когато комбинацията е с другия пол
+  notify_any_combination: false
+
+  # Другите новини се събират в едно общо съобщение на проверка:
+  notify_new_dates: true          # нова дата на пътуване
+  notify_price_changes: true      # цената се е променила
+  notify_last_seats: 2            # остават <= N свободни места (0 = изключено)
+  notify_available_again: true    # дата, която беше пълна, пак има места
+
+  # Да праща ли в Slack съобщение, ако някой линк не може да бъде прочетен
+  notify_on_errors: true
+
+  # false = всяко нещо се съобщава само първия път, когато се появи
+  # true  = всеки ден напомняне, докато има дата с комбинация
+  repeat_alerts_daily: false
+
+  # Пауза между заявките към сайта (секунди)
+  request_delay: 3
+
+travels:
+  - https://cedadventures.com/travels/yaponia/
+  - https://cedadventures.com/travels/nova-zelandiya-samoa/
+  - https://cedadventures.com/travels/gvatemala-beliz-honduras/
+  - https://cedadventures.com/travels/yuar-namibiya/

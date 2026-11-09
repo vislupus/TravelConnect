@@ -1,0 +1,9 @@
+__pycache__/
+*.py[oc]
+.pytest_cache/
+.venv/
+_site/
+*.db-journal
+*.db-wal
+*.db-shm
+debug/
