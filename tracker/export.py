@@ -93,7 +93,7 @@ def export_summary(db: Database, settings, out_path: Path | None, dashboard_url:
     for t in db.travels():
         deps = [departure_payload(db, d, wanted, today) for d in db.departures(t["slug"])]
         travels.append({
-            "slug": t["slug"], "url": t["url"], "name": t["name"] or t["title"] or t["slug"],
+            "slug": t["slug"], "url": t["url"], "name": t["name"],   # твоето име от YAML (може да липсва)
             "title": t["title"], "image": t["image"], "description": t["description"],
             "active": bool(t["active"]), "departures": deps,
         })
@@ -109,7 +109,7 @@ def export_summary(db: Database, settings, out_path: Path | None, dashboard_url:
             "at": e["checked_at"], "notified": bool(e["notified"]),
             "detail": json.loads(e["detail"]) if e["detail"] else {},
             "departure": e["departure_id"], "travel": e["travel_slug"],
-            "travel_name": t["name"] if t else e["travel_slug"],
+            "travel_name": (t["name"] or t["title"] or t["slug"]) if t else e["travel_slug"],
             "travel_url": t["url"] if t else None,
             "dep_name": d["name"] if d else None, "start": d["start"] if d else None, "end": d["end"] if d else None,
         })
