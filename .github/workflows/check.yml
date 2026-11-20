@@ -28,6 +28,11 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Винаги последният commit в клона, не този, с който е създаден run-ът.
+          # Иначе „Re-run“ на стара проверка работи със стара база и записът
+          # ѝ се сблъсква с по-новата (travels.db е двоичен файл и не се слива).
+          ref: ${{ github.ref_name }}
 
       - uses: astral-sh/setup-uv@v7
 

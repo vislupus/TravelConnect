@@ -212,6 +212,11 @@ def _form_items(soup: BeautifulSoup):
             yield dep
 
 
+def is_travel_page(html: str) -> bool:
+    """Има ли секцията с дати (дори празна)? Ако не – това не е страница на пътуване."""
+    return "Дати на програмата" in html or "_programs_form" in html
+
+
 def parse_travel(html: str, url: str | None = None) -> TravelPage:
     soup = BeautifulSoup(html, "html.parser")
 
@@ -241,7 +246,7 @@ def parse_travel(html: str, url: str | None = None) -> TravelPage:
             deps[dep.key] = dep
 
     if not deps:
-        if "Дати на програмата" not in html and "_programs_form" not in html:
+        if not is_travel_page(html):
             raise ParseError("На страницата няма секция „Дати на програмата“ – "
                              "това не прилича на страница на пътуване.")
         # Секцията я има, но без нито една дата – легитимно празно (пътуване без обявени дати)
