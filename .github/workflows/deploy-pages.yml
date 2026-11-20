@@ -36,9 +36,15 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
+      # Името включва номера на опита: при „Re-run“ старият артефакт остава
+      # в същия run и с едно и също име публикуването отказва
+      # („Multiple artifacts named github-pages“).
       - uses: actions/upload-pages-artifact@v5
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: _site
 
       - id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}

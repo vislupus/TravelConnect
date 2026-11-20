@@ -21,7 +21,7 @@ from .export import export_summary
 from .fetch import FetchError, Fetcher
 from .notify import (SlackNotifier, combo_alert_message, combo_phrase, digest_message, errors_message, fmt_price, fmt_range,
                      fmt_seats, reminder_message)
-from .parser import ParseError, parse_travel
+from .parser import ParseError, is_travel_page, parse_travel
 
 ROOT = Path(__file__).resolve().parent.parent
 DEBUG_DIR = ROOT / "debug"
@@ -86,7 +86,7 @@ def run(config_path: Path, db_path: Path, summary_path: Path | None, *, dry_run:
                        "или SLACK_WEBHOOK_URL) – известията се пропускат.")
     dashboard_url = os.getenv("DASHBOARD_URL", "").strip() or None
 
-    fetcher = fetcher or Fetcher(log=lambda m: log("info", m))
+    fetcher = fetcher or Fetcher(log=lambda m: log("info", m), accept=is_travel_page)
     checked_at = utcnow_iso()
     rows: list[dict] = []
     errors: list[dict] = []
@@ -103,6 +103,7 @@ def run(config_path: Path, db_path: Path, summary_path: Path | None, *, dry_run:
             html = fetcher.get(t.url)
             page = parse_travel(html, t.url)
         except (FetchError, ParseError) as e:
+            html = html if html is not None else getattr(e, "html", None)
             if html is not None:
                 save_debug_html(t.slug, html)
             row = db.travel(t.slug)

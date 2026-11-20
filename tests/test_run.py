@@ -165,3 +165,17 @@ def test_dry_run_writes_nothing(env):
     assert code == 0
     assert not env["db"].exists() and not env["out"].exists()
     assert env["spy"].messages == []
+
+
+def test_unexpected_page_is_saved_for_debugging(env, monkeypatch, tmp_path):
+    from tracker.fetch import UnexpectedPageError
+
+    class Challenged:
+        def get(self, url):
+            raise UnexpectedPageError("Сайтът върна друга страница", "<html>challenge</html>")
+
+    monkeypatch.setattr(tracker_main, "DEBUG_DIR", tmp_path / "debug")
+    cfg = tmp_path / "travels.yaml"
+    code = tracker_main.run(cfg, env["db"], env["out"], dry_run=False, notify=True, fetcher=Challenged())
+    assert code == 1
+    assert (tmp_path / "debug" / "yaponia.html").read_text(encoding="utf-8") == "<html>challenge</html>"
