@@ -86,6 +86,7 @@ def run(config_path: Path, db_path: Path, summary_path: Path | None, *, dry_run:
                        "или SLACK_WEBHOOK_URL) – известията се пропускат.")
     dashboard_url = os.getenv("DASHBOARD_URL", "").strip() or None
 
+    own_fetcher = fetcher is None
     fetcher = fetcher or Fetcher(log=lambda m: log("info", m), accept=is_travel_page)
     checked_at = utcnow_iso()
     rows: list[dict] = []
@@ -174,6 +175,9 @@ def run(config_path: Path, db_path: Path, summary_path: Path | None, *, dry_run:
         else:
             log("notice", f"{travel_name}: {len(page.departures)} дати" + (" (първа проверка)" if baseline else ""))
         db.conn.commit()
+
+    if own_fetcher:
+        fetcher.close()
 
     if digest and notify:
         text, blocks = digest_message(digest, dashboard_url)
