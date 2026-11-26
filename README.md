@@ -88,7 +88,18 @@ Settings → Secrets and variables → Actions → **Secrets**. Или бот, �
 Actions → **Проверка на пътуванията** → Run workflow (или просто промени
 `travels.yaml`). Тя създава `data/travels.db` и `data/summary.json` и публикува сайта.
 
-### 5. Ако сайтът блокира GitHub
+### 5. Защитата на сайта
+
+Сайтът има проверка с JavaScript („SuperJS check“ на хостинга) – обикновена
+заявка получава страница със скрипт вместо пътуването. Затова, когато обикновените
+заявки не минат, проверката отваря страниците в Chromium без прозорец (Playwright).
+В GitHub Actions браузърът се инсталира сам. Локално се инсталира веднъж:
+
+```bash
+uv run playwright install chromium
+```
+
+### 6. Ако сайтът блокира GitHub
 
 Проверката може да върви от твоя компютър със self-hosted runner:
 
@@ -128,7 +139,7 @@ uv run pytest                            # тестове върху запис�
 travels.yaml            списък и настройки
 tracker/
   config.py             четене на YAML
-  fetch.py              изтегляне (requests, резервно curl_cffi)
+  fetch.py              изтегляне (requests, резервно curl_cffi и браузър Chromium)
   parser.py             четене на страницата – дати, цени, места, комбинации
   changes.py            какво се е променило и кое заслужава известие
   notify.py             Slack съобщения

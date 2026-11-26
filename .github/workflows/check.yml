@@ -38,6 +38,11 @@ jobs:
       - name: Инсталиране
         run: uv sync --frozen --no-dev
 
+      # Сайтът иска проверка с JavaScript („SuperJS check“), която минава само
+      # истински браузър – виж tracker/fetch.py.
+      - name: Браузър (Chromium)
+        run: uv run --no-dev playwright install --with-deps --only-shell chromium
+
       - name: Проверка на пътуванията
         run: uv run python -m tracker
         env:

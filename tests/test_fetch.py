@@ -62,3 +62,82 @@ def test_blocked_everywhere_is_still_blocked_error():
 
 def test_without_accept_any_200_is_returned():
     assert make(Strategy("requests", Resp(CHALLENGE)), accept=None).get(URL) == CHALLENGE
+
+
+# ---- браузърът: проверката с JavaScript се минава в самата страница ----
+
+class FakeDoc:
+    def __init__(self, text, status=200):
+        self._text, self.status = text, status
+
+    def text(self):
+        return self._text
+
+    def all_headers(self):
+        return {}
+
+
+class FakePage:
+    """goto връща проверката; след няколко питания „скриптът“ е заредил истинската страница."""
+
+    def __init__(self, strategy, real, rounds=2):
+        self.strategy, self.real, self.rounds = strategy, real, rounds
+        self.gotos = self.polls = 0
+
+    def goto(self, url, wait_until, timeout):
+        self.gotos += 1
+        doc = FakeDoc(CHALLENGE)
+        self.strategy._docs.append(doc)
+        return doc
+
+    def content(self):
+        self.polls += 1
+        if self.polls <= self.rounds:
+            return CHALLENGE
+        if self.strategy._docs[-1].text() != self.real:
+            self.strategy._docs.append(FakeDoc(self.real))
+        return "<html><!-- както го вижда браузърът -->" + self.real + "</html>"
+
+    def wait_for_timeout(self, ms):
+        pass
+
+
+def browser_with(real, rounds=2):
+    from tracker.fetch import _BrowserStrategy
+    b = _BrowserStrategy(is_travel_page)
+    b._docs = []
+    b._page = FakePage(b, real, rounds)
+    return b
+
+
+def test_browser_waits_for_js_check_and_returns_raw_page(fixture_html):
+    real = fixture_html("yaponia")
+    b = browser_with(real)
+    resp = b.get(URL, 40)
+    assert resp.status_code == 200 and resp.text == real
+    assert b._page.gotos == 1      # без второ зареждане – то пак би получило проверката
+
+
+def test_browser_gives_up_when_check_never_passes(fixture_html, monkeypatch):
+    b = browser_with(fixture_html("yaponia"), rounds=10**9)
+    monkeypatch.setattr(b, "challenge_wait", 0)
+    assert b.get(URL, 40).text == CHALLENGE
+
+
+def test_fetcher_uses_browser_after_plain_requests_get_the_check(fixture_html):
+    real = fixture_html("yaponia")
+    b = browser_with(real)
+    f = make(Strategy("requests", Resp(CHALLENGE)), b)
+    assert f.get(URL) == real
+    assert f.strategies[0] is b
+
+
+def test_browser_that_cannot_start_does_not_hide_what_the_site_returned(monkeypatch):
+    from tracker.fetch import _BrowserStrategy
+    b = _BrowserStrategy(is_travel_page)
+    monkeypatch.setattr(b, "_start", lambda: (_ for _ in ()).throw(RuntimeError("Executable doesn't exist\nmore")))
+    f = make(Strategy("requests", Resp(CHALLENGE)), b)
+    with pytest.raises(UnexpectedPageError) as e:
+        f.get(URL)
+    assert "SuperJS" not in str(e.value) and "One moment" in str(e.value)
+    assert "браузърът не тръгна – Executable doesn't exist" in str(e.value)
